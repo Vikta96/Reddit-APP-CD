@@ -18,7 +18,7 @@ pipeline {
         stage('Update Deployment File') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'github credentials', variable: 'reddit-git')]) {
+                    withCredentials([gitUsernamePassword(credentialsId: 'github credentials', gitToolName: 'reddit-git')]) {
                         // Determine the image name dynamically based on your versioning strategy
                         NEW_IMAGE_NAME = "vikta96/reddit-app-ci:latest"
 

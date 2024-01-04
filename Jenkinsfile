@@ -15,23 +15,27 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Vikta96/Reddit-APP-CD.git'
             }
         }
-        stage('Update Deployment File') {
+        stage("Update the Deployment Tags") {
             steps {
-                script {
-                    withCredentials([gitUsernamePassword(credentialsId: 'github credentials', gitToolName: 'reddit-git')]) {
-                        // Determine the image name dynamically based on your versioning strategy
-                        NEW_IMAGE_NAME = "vikta96/reddit-app-ci:latest"
-
-                        // Replace the image name in the deployment.yaml file
-                        sh "sed -i 's|image: .*|image: $NEW_IMAGE_NAME|' deployment.yml"
-
-                        // Git commands to stage, commit, and push the changes
-                        sh 'git add deployment.yml'
-                        sh "git commit -m 'Update deployment image to $NEW_IMAGE_NAME'"
-                        sh "git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main"
-                    }    
+                sh """
+                    cat deployment.yaml
+                    sed -i 's/${APP_NAME}.*/${APP_NAME}:${IMAGE_TAG}/g' deployment.yaml
+                    cat deployment.yaml
+                """
+            }
+         }
+        stage("Push the changed deployment file to GitHub") {
+            steps {
+                sh """
+                    git config --global user.name "Vikta96"
+                    git config --global user.email "anandakbm96@gmail.com"
+                    git add deployment.yaml
+                    git commit -m "Updated Deployment Manifest"
+                """
+                withCredentials([gitUsernamePassword(credentialsId: 'github credentials', gitToolName: 'reddit-git')]) {
+                    sh "git push https://github.com/Vikta96/Reddit-APP-CD.git main"
                 }
             }
-        }
+         }
     }
 }
